@@ -110,6 +110,27 @@ async fn add_cat_form(pool: web::Data<DbPool>,
        .finish())
 }
 
+async fn cat(
+    hb: web::Data<Handlebars<'_>>,
+    pool: web::Data<DbPool>,
+    cat_id: web::Path<i32>,
+    ) -> Result<HttpResponse, Error> {
+    //TODO
+    let mut connection = pool.get()
+        .expect("Cannot get connection from pool");
+
+    let cat_data = web::block(move || {
+        cats.filter(id.eq(cat_id.into_inner()))
+            .first::<Cat>(&mut connection)
+    })
+    .await
+    .map_err(|_| HttpResponse::InternalServerError().finish());
+
+    let body = hb.render("catdetail", &cat_data.unwrap().unwrap()).unwrap();
+
+    Ok(HttpResponse::Ok().body(body))
+    }
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // set up the handlebar template engine
@@ -146,6 +167,7 @@ async fn main() -> std::io::Result<()> {
             .route("/", web::get().to(index))
             .route("/add", web::get().to(add))
             .route("add_cat_form", web::post().to(add_cat_form))
+            .route("/cat/{id}", web::get().to(cat))
     })
     .bind("127.0.0.1:8080")?
     .run()

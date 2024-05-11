@@ -11,7 +11,10 @@
 						{{#each cats}}
 						<article class="cat">
 								<h3>{{this.name}}</h3>
-								<img src={{this.image_path}} />
+								<a href="/cat/{{id}}">
+										<img src={{this.image_path}} />
+								</a>
+
 						</article>
 						{{/each}}
 				</section>
